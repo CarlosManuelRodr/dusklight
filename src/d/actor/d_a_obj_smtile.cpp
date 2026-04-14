@@ -6,8 +6,13 @@
 #include "d/dolzel_rel.h" // IWYU pragma: keep
 
 #include "d/actor/d_a_obj_smtile.h"
-#include "d/d_com_inf_game.h"
+
+#include <fstream>
+
+#include "JSystem/J3DGraphBase/J3DDrawBuffer.h"
+#include "JSystem/JParticle/JPAResourceManager.h"
 #include "SSystem/SComponent/c_counter.h"
+#include "d/d_com_inf_game.h"
 
 static u32 l_bmdData[1][2] = {
     4, 1,
@@ -117,7 +122,117 @@ int daObj_SMTile_c::Delete() {
     return 1;
 }
 
+constexpr u32 APPLE_FRAMES = 6572;
+constexpr u32 APPLE_WIDTH = 48;
+constexpr u32 APPLE_HEIGHT = 36;
+
+static constexpr f32 APPLE_TILE_SEPARATION = 100;
+static constexpr f32 APPLE_TILE_SIZE = 90;
+static const cXyz APPLE_TILE_OFFSET = cXyz(APPLE_TILE_SEPARATION, APPLE_TILE_SEPARATION, 0);
+static const cXyz APPLE_OFFSET = cXyz(-(f32)APPLE_WIDTH/2 * APPLE_TILE_SEPARATION, 0, -(f32)APPLE_HEIGHT/2 * APPLE_TILE_SEPARATION - 400);
+
+static cXyz applePositions[APPLE_HEIGHT * APPLE_WIDTH];
+static u8 appleData[APPLE_HEIGHT * APPLE_WIDTH];
+
+class guhPacket : public J3DPacket {
+    void draw() override {
+        u8 rmId = dPa_control_c::getRM_ID(0x86EC);
+        JPAResourceManager* rm = dPa_control_c::mEmitterMng->getResourceManager(rmId);
+        auto resource = rm->getResource(0x86EC);
+        rm->load(resource->getTexIdx(0), GX_TEXMAP0);
+
+        GXSetTevColor(GX_TEVREG0, GXColor{0xFF,0xFF,0xFF,0xFF});
+        GXSetNumChans(1);
+        GXSetChanCtrl(GX_COLOR0, GX_DISABLE, GX_SRC_REG, GX_SRC_REG, GX_LIGHT_NULL, GX_DF_CLAMP, GX_AF_NONE);
+        GXSetNumTexGens(1);
+        GXSetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);
+        GXSetNumTevStages(1);
+        GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
+        GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_C0, GX_CC_TEXC, GX_CC_ZERO);
+        GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_A0, GX_CA_TEXA, GX_CA_ZERO);
+        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+        GXSetZMode(GX_ENABLE, GX_LEQUAL, GX_DISABLE);
+        GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+        GXSetNumIndStages(0);
+        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
+        GXSetCullMode(GX_CULL_NONE);
+        GXClearVtxDesc();
+        GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+        GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
+
+        GXLoadPosMtxImm(j3dSys.getViewMtx(), GX_PNMTX0);
+        GXSetCurrentMtx(GX_PNMTX0);
+
+        for (u32 y = 0; y < APPLE_HEIGHT; y++) {
+            for (u32 x = 0; x < APPLE_WIDTH; x++) {
+                u32 idx = y * APPLE_WIDTH + x;
+                if (!appleData[idx]) {
+                    continue;
+                }
+
+                cXyz pos = applePositions[idx];
+
+                GXBegin(GX_TRIANGLES, GX_VTXFMT0, 6);
+
+                GXPosition3f32(pos.x, pos.y, pos.z);
+                GXTexCoord2f32(0, 0);
+                GXPosition3f32(pos.x+APPLE_TILE_SIZE, pos.y, pos.z);
+                GXTexCoord2f32(1, 0);
+                GXPosition3f32(pos.x+APPLE_TILE_SIZE, pos.y, pos.z+APPLE_TILE_SIZE);
+                GXTexCoord2f32(1, 1);
+
+                GXPosition3f32(pos.x, pos.y, pos.z);
+                GXTexCoord2f32(0, 0);
+                GXPosition3f32(pos.x+APPLE_TILE_SIZE, pos.y, pos.z+APPLE_TILE_SIZE);
+                GXTexCoord2f32(1, 1);
+                GXPosition3f32(pos.x, pos.y, pos.z+APPLE_TILE_SIZE);
+                GXTexCoord2f32(0, 1);
+
+                GXEnd();
+            }
+        }
+    }
+};
+
+static guhPacket guh;
+
+static std::ifstream AppleData(R"(E:\Projects\dusk\apple.dat)", std::ios_base::binary | std::ios_base::in);
+
+static void AppleExecute(daObj_SMTile_c* tile) {
+    if (tile->bad_apple_frame == APPLE_FRAMES) {
+        tile->field_0xb2a = true;
+        tile->bad_apple = false;
+        return;
+    }
+
+    AppleData.read((char*)appleData, sizeof(appleData));
+
+    tile->bad_apple_frame += 1;
+}
+
+static void AppleInit(daObj_SMTile_c* tile) {
+    tile->bad_apple = true;
+    JAISoundStarter::getInstance()->startSound(0x0200007d, &tile->apple_sound, nullptr);
+
+    for (u32 y = 0; y < APPLE_HEIGHT; y++) {
+        for (u32 x = 0; x < APPLE_WIDTH; x++) {
+            u32 idx = y * APPLE_WIDTH + x;
+            cXyz pos = tile->current.pos + cXyz(x, 0, y) * APPLE_TILE_SEPARATION + APPLE_OFFSET;
+            applePositions[idx] = pos;
+            // mDoMtx_stack_c::multVec(&pos, &);
+            // appleEmitters[idx] = dComIfGp_particle_set(0x86EC, &applePositions[idx], nullptr, &appleScale);
+        }
+    }
+}
+
 int daObj_SMTile_c::Execute() {
+    if (bad_apple) {
+        AppleExecute(this);
+        return 0;
+    }
+
     if (home.roomNo == dComIfGp_roomControl_getStayNo()) {
         if (field_0xb2b != 0) {
             for (int i = 0; i < 21; i++) {
@@ -174,10 +289,11 @@ int daObj_SMTile_c::Execute() {
             
             if (field_0xa7c > 240) {
                 field_0xb29 = 0;
+                AppleInit(this);
             } else {
-                if (field_0xa7c > 220) {
-                    field_0xb2a = 1;
-                }
+                // if (field_0xa7c > 220) {
+                //     field_0xb2a = 1;
+                // }
                 f32 fVar1 = (240 - field_0xa7c) / 40.0f;
                 if (1.0f < fVar1) {
                     fVar1 = 1.0f;
@@ -196,6 +312,10 @@ int daObj_SMTile_c::Execute() {
 }
 
 int daObj_SMTile_c::Draw() {
+    if (bad_apple) {
+        j3dSys.getDrawBuffer(J3DSysDrawBuf_Xlu)->entryImm(&guh, 0);
+    }
+
     J3DModelData* modelData = mModel->getModelData();
     g_env_light.settingTevStruct(0, &current.pos, &tevStr);
     g_env_light.setLightTevColorType_MAJI(mModel, &tevStr);
