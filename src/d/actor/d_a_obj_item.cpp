@@ -152,7 +152,55 @@ void daItem_c::CreateInit() {
     procInitNormal();
     show();
 
+#if TARGET_PC
+    if (dComIfG_isRandomizer()) {
+        // Adjust item scale based on item ID
+        switch(m_itemNo)
+        {
+            case dItemNo_Randomizer_KAKERA_HEART_e:
+            case dItemNo_Randomizer_UTAWA_HEART_e:
+            case dItemNo_Randomizer_ARROW_10_e:
+            case dItemNo_Randomizer_ARROW_20_e:
+            case dItemNo_Randomizer_ARROW_30_e:
+            case dItemNo_Randomizer_GREEN_RUPEE_e:
+            case dItemNo_Randomizer_BLUE_RUPEE_e:
+            case dItemNo_Randomizer_YELLOW_RUPEE_e:
+            case dItemNo_Randomizer_RED_RUPEE_e:
+            case dItemNo_Randomizer_PURPLE_RUPEE_e:
+            case dItemNo_Randomizer_ORANGE_RUPEE_e:
+            case dItemNo_Randomizer_SILVER_RUPEE_e:
+            case dItemNo_Randomizer_HEART_e:
+            {
+                mItemScale.setall(1.0f);
+                break;
+            }
+
+            case dItemNo_Randomizer_BOW_e:
+            {
+                mItemScale.setall(1.5f);
+                break;
+            }
+
+            case dItemNo_Randomizer_MASTER_SWORD_e:
+            case dItemNo_Randomizer_LIGHT_SWORD_e:
+            case dItemNo_Randomizer_MIRROR_PIECE_1_e:
+            case dItemNo_Randomizer_MIRROR_PIECE_2_e:
+            case dItemNo_Randomizer_MIRROR_PIECE_3_e:
+            case dItemNo_Randomizer_MIRROR_PIECE_4_e:
+            {
+                mItemScale.setall(0.7f);
+                break;
+            }
+            default:
+            {
+                mItemScale.setall(2.0f);
+                break;
+            }
+        }
+    }
+#else
     mItemScale.setall(1.0f);
+#endif
 
     switch (daItem_prm::getType(this)) {
     case TYPE_BOOM_HIT_e:
@@ -181,7 +229,11 @@ void daItem_c::CreateInit() {
     initBaseMtx();
     animPlay(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 
+#if TARGET_PC
+    if (m_itemNo == dItemNo_BOOMERANG_e && !dComIfG_isRandomizer()) {
+#else
     if (m_itemNo == dItemNo_BOOMERANG_e) {
+#endif
         itemGetNextExecute();
     } else if ((m_itemNo == dItemNo_ORANGE_RUPEE_e || m_itemNo == dItemNo_SILVER_RUPEE_e) &&
                mSparkleEmtr.getEmitter() == NULL)
