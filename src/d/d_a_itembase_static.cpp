@@ -51,26 +51,6 @@ int CheckItemCreateHeap(fopAc_ac_c* i_this) {
     daItemBase_c* a_this = static_cast<daItemBase_c*>(i_this);
 
     u8 item_no = a_this->getItemNo();
-#if TARGET_PC
-    if (dComIfG_isRandomizer()) {
-        switch (item_no)
-        {
-            case dItemNo_Randomizer_EMPTY_BOTTLE_e:
-            case dItemNo_Randomizer_HALF_MILK_BOTTLE_e:
-            case dItemNo_Randomizer_OIL_BOTTLE3_e:
-            case dItemNo_Randomizer_DROP_BOTTLE_e:
-            case dItemNo_Randomizer_LINKS_SAVINGS_e:
-            case dItemNo_Randomizer_POU_SPIRIT_e:
-            {
-                return CheckItemCreateHeap(i_this);
-            }
-            default:
-            {
-                break;
-            }
-        }
-    }
-#endif
     return a_this->CreateItemHeap(dItem_data::getArcName(item_no), dItem_data::getBmdName(item_no),
                                   dItem_data::getBtkName(item_no), dItem_data::getBpkName(item_no),
                                   dItem_data::getBckName(item_no), dItem_data::getBxaName(item_no),
@@ -81,6 +61,26 @@ int CheckFieldItemCreateHeap(fopAc_ac_c* i_this) {
     daItemBase_c* a_this = static_cast<daItemBase_c*>(i_this);
 
     u8 item_no = a_this->getItemNo();
+#if TARGET_PC
+    if (dComIfG_isRandomizer()) {
+        switch (item_no)
+        {
+        case dItemNo_Randomizer_EMPTY_BOTTLE_e:
+        case dItemNo_Randomizer_HALF_MILK_BOTTLE_e:
+        case dItemNo_Randomizer_OIL_BOTTLE3_e:
+        case dItemNo_Randomizer_DROP_BOTTLE_e:
+        case dItemNo_Randomizer_LINKS_SAVINGS_e:
+        case dItemNo_Randomizer_POU_SPIRIT_e:
+        {
+            return CheckItemCreateHeap(i_this);
+        }
+        default:
+        {
+            break;
+        }
+        }
+    }
+#endif
     return a_this->CreateItemHeap(
         dItem_data::getFieldArc(item_no), dItem_data::getItemBmdName(item_no),
         dItem_data::getItemBtkName(item_no), dItem_data::getItemBpkName(item_no),
