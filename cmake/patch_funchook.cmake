@@ -4,7 +4,7 @@ file(READ "${SOURCE_DIR}/cmake/capstone.cmake.in" _content)
 # Bracket args prevent cmake from substituting ${...} while writing this file.
 string(REPLACE
     "    CONFIGURE_COMMAND \"\""
-    [=[    PATCH_COMMAND "${CMAKE_COMMAND}" -DDIR="${CMAKE_CURRENT_BINARY_DIR}/capstone-src" -P "${CAPSTONE_FIX_SCRIPT}"
+    [=[    PATCH_COMMAND "${CMAKE_COMMAND}" -DDIR=${CMAKE_CURRENT_BINARY_DIR}/capstone-src -P "${CAPSTONE_FIX_SCRIPT}"
     CONFIGURE_COMMAND ""]=]
     _content "${_content}")
 
