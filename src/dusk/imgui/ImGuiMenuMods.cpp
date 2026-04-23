@@ -48,12 +48,18 @@ void ImGuiMenuMods::showModsWindow() {
 
     if (ImGui::BeginTabBar("##ModsOuter")) {
         for (const auto& mod : mods) {
-            const std::string tabLabel = mod.name + (mod.active ? "" : " [disabled]");
+            const std::string tabLabel = mod.name + (mod.load_failed ? " [failed]" : mod.active ? "" : " [disabled]");
 
             if (ImGui::BeginTabItem(tabLabel.c_str())) {
                 ImGui::Text("Version: %s", mod.version.c_str());
                 ImGui::Text("Author: %s", mod.author.c_str());
-                ImGui::Text("Status: %s", mod.active ? "Active" : "Disabled");
+
+                if (mod.load_failed) {
+                    ImGui::TextColored(ImVec4(1.f, 0.3f, 0.3f, 1.f), "Status: Failed to load");
+                } else {
+                    ImGui::Text("Status: %s", mod.active ? "Active" : "Disabled");
+                }
+
                 ImGui::Text("Path: %s", mod.mod_path.c_str());
 
                 if (!mod.description.empty()) {
@@ -61,9 +67,11 @@ void ImGuiMenuMods::showModsWindow() {
                     ImGui::TextWrapped("%s", mod.description.c_str());
                 }
 
-                for (const auto& cb : mod.tab_content) {
-                    ImGui::Separator();
-                    ModLoader::callDrawCallback(mod, cb);
+                if (!mod.load_failed) {
+                    for (const auto& cb : mod.tab_content) {
+                        ImGui::Separator();
+                        ModLoader::callDrawCallback(mod, cb);
+                    }
                 }
 
                 ImGui::EndTabItem();

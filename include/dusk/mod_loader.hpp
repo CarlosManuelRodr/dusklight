@@ -21,8 +21,9 @@ struct LoadedMod {
     std::string mod_path;
     std::string dir;
 
-    void* handle = nullptr;
-    bool  active = false;
+    void* handle      = nullptr;
+    bool  active      = false;
+    bool  load_failed = false;
 
     using FnInit        = void (*)(DuskModAPI*);
     using FnTick        = void (*)(DuskModAPI*);

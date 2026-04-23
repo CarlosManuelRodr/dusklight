@@ -160,11 +160,15 @@ static void api_hook_pre(void* addr, int32_t (*fn)(void* args)) {
 }
 
 static void api_hook_post(void* addr, void (*fn)(void* args)) {
-    dusk::hookRegisterPost(addr, g_currentMod, fn);
+    dusk::hookRegisterPost(addr, g_currentMod, modName(), fn);
 }
 
 static void api_hook_replace(void* addr, void (*fn)(void* args)) {
-    dusk::hookSetReplace(addr, g_currentMod, fn);
+    if (!dusk::hookSetReplace(addr, g_currentMod, modName(), fn)) {
+        if (g_currentMod) {
+            g_currentMod->load_failed = true;
+        }
+    }
 }
 
 namespace dusk {
@@ -343,8 +347,12 @@ void ModLoader::init() {
         ModGuard guard(&mod);
         try {
             mod.fn_init(&mod.api);
-            mod.active = true;
-            DuskLog.info("ModLoader: '{}' initialized", mod.name);
+            if (!mod.load_failed) {
+                mod.active = true;
+                DuskLog.info("ModLoader: '{}' initialized", mod.name);
+            } else {
+                DuskLog.error("ModLoader: '{}' failed to load due to hook conflicts", mod.name);
+            }
         } catch (const std::exception& e) {
             DuskLog.error("ModLoader: exception in {}.mod_init(): {}", mod.name, e.what());
         } catch (...) {

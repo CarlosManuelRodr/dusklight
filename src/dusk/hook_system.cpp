@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstring>
 #include <funchook.h>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -17,6 +18,7 @@ struct PreHookFn {
 };
 struct VoidHookFn {
     void* mod;
+    const char* mod_name;
     void (*fn)(void* args);
 };
 
@@ -121,15 +123,19 @@ void hookRegisterPre(void* fn_addr, void* mod, int32_t (*fn)(void* args)) {
     registry()[reinterpret_cast<uintptr_t>(fn_addr)].pre.push_back({mod, fn});
 }
 
-void hookRegisterPost(void* fn_addr, void* mod, void (*fn)(void* args)) {
-    registry()[reinterpret_cast<uintptr_t>(fn_addr)].post.push_back({mod, fn});
+void hookRegisterPost(void* fn_addr, void* mod, const char* mod_name, void (*fn)(void* args)) {
+    registry()[reinterpret_cast<uintptr_t>(fn_addr)].post.push_back({mod, mod_name, fn});
 }
 
-void hookSetReplace(void* fn_addr, void* mod, void (*fn)(void* args)) {
+bool hookSetReplace(void* fn_addr, void* mod, const char* mod_name, void (*fn)(void* args)) {
     auto& slot = registry()[reinterpret_cast<uintptr_t>(fn_addr)];
-    if (slot.replace.fn)
-        DuskLog.warn("HookSystem: replace hook for {} already set — overwriting", fn_addr);
-    slot.replace = {mod, fn};
+    if (slot.replace.fn) {
+        DuskLog.error("HookSystem: '{}' conflicts with '{}', both replace the same function",
+                      mod_name, slot.replace.mod_name);
+        return false;
+    }
+    slot.replace = {mod, mod_name, fn};
+    return true;
 }
 
 void hookClearMod(void* mod) {
