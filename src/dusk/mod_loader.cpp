@@ -253,7 +253,7 @@ void ModLoader::tryLoadDusk(const std::filesystem::path& modPath) {
         return;
     }
 
-    const fs::path cacheDir = fs::path("mods") / ".cache" / modPath.stem();
+    const fs::path cacheDir = m_modsDir / ".cache" / modPath.stem();
     std::error_code ec;
     fs::create_directories(cacheDir, ec);
 
@@ -315,7 +315,7 @@ void ModLoader::init() {
     m_initialized = true;
 
     namespace fs = std::filesystem;
-    if (!fs::exists(m_modsDir)) {
+    if (!fs::is_directory(m_modsDir)) {
         DuskLog.info("ModLoader: mods directory '{}' not found — mod loading skipped",
                      m_modsDir.string());
         return;

@@ -55,7 +55,7 @@ public:
 
 private:
     std::vector<LoadedMod> m_mods;
-    std::filesystem::path  m_modsDir = "mods";
+    std::filesystem::path  m_modsDir;
     bool                   m_initialized = false;
 
     void tryLoadDusk(const std::filesystem::path& modPath);

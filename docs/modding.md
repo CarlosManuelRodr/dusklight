@@ -51,6 +51,10 @@ add_dusk_mod(my_mod
 
 After building, `my_mod.dusk` is placed in `mods/` next to the project root (`DUSK_MODS_OUTPUT_DIR` cache variable). Copy it to the game's `mods/` folder and launch.
 
+- Windows: `%APPDATA%\TwilitRealm\Dusk\mods`
+- Linux: `~/.local/share/TwilitRealm/Dusk/mods`
+- macOS: `~/Library/Application Support/TwilitRealm/Dusk/mods`
+
 The `.dusk` archive is a standard zip containing `mod.json`, the compiled library, and an optional `res/` tree. `add_dusk_mod()` creates it automatically.
 
 ---

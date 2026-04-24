@@ -493,7 +493,7 @@ int game_main(int argc, char* argv[]) {
             ("h,help", "Print usage")
             ("console", "Show the Windows console window for logs", cxxopts::value<bool>()->default_value("false")->implicit_value("true"))
             ("dvd", "Path to DVD image file", cxxopts::value<std::string>())
-            ("mods", "Path to mods directory", cxxopts::value<std::string>()->default_value("mods"))
+            ("mods", "Path to mods directory", cxxopts::value<std::string>())
             ("backend", "Graphics API backend to use (auto, d3d12, metal, vulkan, null)", cxxopts::value<std::string>())
             ("cvar", "Override configuration variables without modifying config", cxxopts::value<std::vector<std::string>>());
 
@@ -619,7 +619,15 @@ int game_main(int argc, char* argv[]) {
     mDoMain::developmentMode = 1;  // Force Dev Mode for Debugging
     mDoDvdThd::SyncWidthSound = false;
 
-    dusk::ModLoader::instance().setModsDir(parsed_arg_options["mods"].as<std::string>());
+    // Setup mods
+    if (parsed_arg_options.contains("mods") &&
+        !parsed_arg_options["mods"].as<std::string>().empty())
+    {
+        dusk::ModLoader::instance().setModsDir(parsed_arg_options["mods"].as<std::string>());
+    } else {
+        dusk::ModLoader::instance().setModsDir(dusk::ConfigPath / "mods");
+    }
+
     OSReport("Starting main01 (Game Loop)...\n");
     main01();
 
