@@ -12,6 +12,13 @@
 #include "SSystem/SComponent/c_math.h"
 #include <cstring>
 
+#if TARGET_PC
+#include "d/actor/d_a_alink.h"
+#include "dusk/randomizer/game/tools.h"
+#include "dusk/randomizer/game/verify_item_functions.h"
+#include "dusk/randomizer/game/stages.h"
+#endif
+
 const static dCcD_SrcCyl l_cyl_src = {
     {
         {0x0, {{0x0, 0x0, 0x0}, {0xffffffff, 0x11}, 0x59}}, // mObj
@@ -97,6 +104,22 @@ int daObjLife_c::Create() {
     field_0x94c = 0.7f;
     mRotateSpeed = 7000;
 
+#if TARGET_PC
+    if (randomizer_IsActive()) {
+        // If we're on certain stages, turn the item's gravity off
+        if (daAlink_c::checkStageName(allStages[Hyrule_Field]) ||
+            daAlink_c::checkStageName(allStages[Upper_Zoras_River]) ||
+            daAlink_c::checkStageName(allStages[Sacred_Grove]) ||
+            daAlink_c::checkStageName(allStages[Stallord]) ||
+            daAlink_c::checkStageName(allStages[Zant_Main_Room]))
+        {
+            mRotateSpeed = 550;
+            fopAcM_SetGravity(this, 0.f);
+        }
+
+        // TODO: rando Foolish item stuff
+    }
+#endif
     setEffect();
     mSound.init(&current.pos, 1);
     return 1;
@@ -105,7 +128,7 @@ int daObjLife_c::Create() {
 void daObjLife_c::setEffect() {
 #if TARGET_PC
     if (randomizer_IsActive()) {
-        // We don't want rupees or poe souls to sparkle. They are bright enough.
+        // In randomizer, we don't want rupees or poe souls to sparkle. They are bright enough.
         switch(m_itemNo)
         {
             case dItemNo_Randomizer_GREEN_RUPEE_e:
@@ -163,6 +186,111 @@ int daObjLife_c::create() {
         mIsPrmsInit = true;
     }
 
+#if TARGET_PC
+    if (randomizer_IsActive()) {
+        u32 params = fopAcM_GetParam(this);
+        u8 flag = getSaveBitNo();
+        u8 stageIdx = getStageID();
+        const auto& freestandingOverrides = randomizer_GetContext().mFreestandingItemOverrides;
+        // If we found an override for this freestanding item
+        if (freestandingOverrides.contains(stageIdx) && freestandingOverrides.at(stageIdx).contains(flag)) {
+            // Clear the itemId and set it to out new itemId
+            params &= 0xFFFFFF00;
+            u8 overrideItem = freestandingOverrides.at(stageIdx).at(flag);
+            u8 newItemId = verifyProgressiveItem(overrideItem);
+            params |= newItemId;
+            fopAcM_SetParam(this, params);
+
+            // Also adjust the height of the object depending on the item
+            switch (newItemId) {
+                case dItemNo_Randomizer_MASTER_SWORD_e:
+                case dItemNo_Randomizer_LIGHT_SWORD_e:
+                case dItemNo_Randomizer_WOOD_SHIELD_e:
+                case dItemNo_Randomizer_HYLIA_SHIELD_e:
+                case dItemNo_Randomizer_SHIELD_e:
+                case dItemNo_Randomizer_SPINNER_e:
+                {
+                    current.pos.y += 30.f;
+                    break;
+                }
+                case dItemNo_Randomizer_WOOD_STICK_e:
+                {
+                    current.pos.y += 60.f;
+                    break;
+                }
+                case dItemNo_Randomizer_SWORD_e:
+                case dItemNo_Randomizer_MIRROR_PIECE_1_e:
+                case dItemNo_Randomizer_MIRROR_PIECE_2_e:
+                case dItemNo_Randomizer_MIRROR_PIECE_3_e:
+                case dItemNo_Randomizer_MIRROR_PIECE_4_e:
+                case dItemNo_Randomizer_FUSED_SHADOW_1_e:
+                case dItemNo_Randomizer_FUSED_SHADOW_2_e:
+                case dItemNo_Randomizer_FUSED_SHADOW_3_e:
+                case dItemNo_Randomizer_COPY_ROD_e:
+                case dItemNo_Randomizer_COPY_ROD_2_e:
+                {
+                    current.pos.y += 50.f;
+                    break;
+                }
+
+                case dItemNo_Randomizer_BOW_e:
+                {
+                    current.pos.y += 55.f;
+                    break;
+                }
+                case dItemNo_Randomizer_BOOMERANG_e:
+                case dItemNo_Randomizer_FISHING_ROD_1_e:
+                case dItemNo_Randomizer_ARROW_LV2_e:
+                case dItemNo_Randomizer_ARROW_LV3_e:
+                {
+                    current.pos.y += 40.f;
+                    break;
+                }
+                case dItemNo_Randomizer_FOREST_SMALL_KEY_e:
+                case dItemNo_Randomizer_MINES_SMALL_KEY_e:
+                case dItemNo_Randomizer_LAKEBED_SMALL_KEY_e:
+                case dItemNo_Randomizer_ARBITERS_SMALL_KEY_e:
+                case dItemNo_Randomizer_SNOWPEAK_SMALL_KEY_e:
+                case dItemNo_Randomizer_TEMPLE_OF_TIME_SMALL_KEY_e:
+                case dItemNo_Randomizer_CITY_SMALL_KEY_e:
+                case dItemNo_Randomizer_PALACE_SMALL_KEY_e:
+                case dItemNo_Randomizer_HYRULE_SMALL_KEY_e:
+                case dItemNo_Randomizer_FOREST_BOSS_KEY_e:
+                case dItemNo_Randomizer_LAKEBED_BOSS_KEY_e:
+                case dItemNo_Randomizer_ARBITERS_BOSS_KEY_e:
+                case dItemNo_Randomizer_TEMPLE_OF_TIME_BOSS_KEY_e:
+                case dItemNo_Randomizer_CITY_BOSS_KEY_e:
+                case dItemNo_Randomizer_PALACE_BOSS_KEY_e:
+                case dItemNo_Randomizer_HYRULE_BOSS_KEY_e:
+                case dItemNo_Randomizer_SMALL_KEY2_e:
+                case dItemNo_Randomizer_LV5_BOSS_KEY_e:
+                case dItemNo_Randomizer_CAMP_SMALL_KEY_e:
+                case dItemNo_Randomizer_BOSSRIDER_KEY_e:
+                case dItemNo_Randomizer_PACHINKO_e:
+                case dItemNo_Randomizer_BOMB_BAG_LV2_e:
+                case dItemNo_Randomizer_BOMB_BAG_LV1_e:
+                case dItemNo_Randomizer_BOMB_IN_BAG_e:
+                case dItemNo_Randomizer_NORMAL_BOMB_e:
+                case dItemNo_Randomizer_POU_SPIRIT_e:
+                {
+                    current.pos.y += 20.f;
+                    break;
+                }
+
+                case dItemNo_Randomizer_ARMOR_e:
+                {
+                    current.pos.y += 25.f;
+                    break;
+                }
+                default:
+                {
+                    break;
+                }
+            }
+        }
+    }
+#endif
+
     m_itemNo = getItemNo();
     if (m_itemNo != dItemNo_KAKERA_HEART_e && m_itemNo != dItemNo_UTAWA_HEART_e) {
         // "Heart Container: Item No is incorrect!<%d>\n"
@@ -173,7 +301,8 @@ int daObjLife_c::create() {
         return cPhs_ERROR_e;
     }
 
-    if (m_itemNo == dItemNo_UTAWA_HEART_e && dComIfGs_isStageLife()) {
+    // Don't return an error here in randomizer
+    if (m_itemNo == dItemNo_UTAWA_HEART_e && dComIfGs_isStageLife() IF_DUSK(&& !randomizer_IsActive())) {
         return cPhs_ERROR_e;
     }
 
@@ -415,8 +544,40 @@ int daObjLife_c::actionWait2() {
 }
 
 void daObjLife_c::calcScale() {
+#if TARGET_PC
+    // If rando is active, make certain modifications
+    f32 newScale = 1.0f;
+    if (randomizer_IsActive()) {
+        // Change scale for certain items
+        switch (m_itemNo) {
+        case dItemNo_Randomizer_KAKERA_HEART_e:
+        case dItemNo_Randomizer_UTAWA_HEART_e:
+        case dItemNo_Randomizer_ARROW_10_e:
+        case dItemNo_Randomizer_ARROW_20_e:
+        case dItemNo_Randomizer_ARROW_30_e:
+            newScale = 1.0f;
+            break;
+        case dItemNo_Randomizer_BOW_e:
+            newScale = 1.5f;
+            break;
+        case dItemNo_Randomizer_MASTER_SWORD_e:
+        case dItemNo_Randomizer_LIGHT_SWORD_e:
+        case dItemNo_Randomizer_MIRROR_PIECE_1_e:
+        case dItemNo_Randomizer_MIRROR_PIECE_2_e:
+        case dItemNo_Randomizer_MIRROR_PIECE_3_e:
+        case dItemNo_Randomizer_MIRROR_PIECE_4_e:
+            newScale = 0.7f;
+            break;
+        default:
+            newScale = 2.0f;
+        }
+    }
+    cLib_chaseF(&field_0x954, newScale, 0.2f);
+    if (field_0x954 == newScale) {
+#else
     cLib_chaseF(&field_0x954, 1.0f, 0.2f);
     if (field_0x954 == 1.0f) {
+#endif
         cLib_chaseF(&field_0x94c, 0.0f, 0.05f);
         field_0x950 = field_0x94c * cM_ssin(field_0x95e * 3000);
 

@@ -897,6 +897,12 @@ void daItem_c::itemGetNextExecute() {
         // is better than littering the original switch statement with #if TARGET_PC
         if (randomizer_IsActive()) {
             switch (m_itemNo) {
+            case dItemNo_HEART_e:
+            case dItemNo_GREEN_RUPEE_e:
+            case dItemNo_ARROW_10_e:
+            case dItemNo_ARROW_20_e:
+            case dItemNo_ARROW_30_e:
+            case dItemNo_ARROW_1_e:
             case dItemNo_BLUE_RUPEE_e:
             case dItemNo_YELLOW_RUPEE_e:
             case dItemNo_RED_RUPEE_e:
