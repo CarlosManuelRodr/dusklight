@@ -1495,6 +1495,9 @@ void dScnLogo_c::dvdDataLoad() {
     OS_REPORT("\x1b[32m%d archiveHeap->getTotalFreeSize %08x\n\x1b[m", 2421, archiveHeap->getTotalFreeSize());
     archiveHeap->dump_sort();
 
+    rt = dComIfG_setObjectRes("E_HP", (u8)0, NULL);
+    JUT_ASSERT(2425, rt == 1);
+
     rt = dComIfG_setObjectRes("Alink", (u8)0, NULL);
     JUT_ASSERT(2429, rt == 1);
 

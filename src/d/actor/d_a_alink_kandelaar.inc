@@ -164,12 +164,12 @@ int daAlink_c::ghostLanternModelCallBack() {
         mDoMtx_stack_c::ZXYrotM(var_r28, var_r29, var_r27);
     }
 
-    static Vec const kandelaarOffset = {0.0f, -17.0f, 0.0f};
-    mDoMtx_stack_c::multVec(&kandelaarOffset, &mGhostLanternFlamePos);
+    static Vec const ghostLanternOffset = {0.0f, -40.0f, 0.0f};
+    mDoMtx_stack_c::multVec(&ghostLanternOffset, &mGhostLanternFlamePos);
 
     ghost_lantern_0x3618 = (mGhostLanternFlamePos - ghost_lantern_0x3624) * 0.9f;
 
-    if (!checkEndResetFlg1(ERFLG1_UNK_8)) {
+    if (!checkEndResetFlg1(ERFLG1_UNK_8) && mpGhostLanternModel != nullptr) {
         f32 scale = JMAFastSqrt(SQUARE(J3DSys::mCurrentMtx[0][0]) + SQUARE(J3DSys::mCurrentMtx[1][0]) + SQUARE(J3DSys::mCurrentMtx[2][0]));
         mDoMtx_stack_c::transS(J3DSys::mCurrentMtx[0][3], J3DSys::mCurrentMtx[1][3], J3DSys::mCurrentMtx[2][3]);
         mDoMtx_stack_c::ZXYrotM(var_r28, var_r29, var_r27);
@@ -234,15 +234,15 @@ void daAlink_c::preGhostLanternDraw() {
     J3DMaterial* mat_p = mpGhostLanternGlowModel->getModelData()->getMaterialNodePointer(0);
 
     J3DGXColorS10 color;
-    color.r = 64;
-    color.g = 128;
-    color.b = 128;
+    color.r = 120;
+    color.g = 150;
+    color.b = 150;
     color.a = 255;
     mat_p->setTevColor(1, &color);
 
-    color.r = 64;
-    color.g = 128;
-    color.b = 128;
+    color.r = 0;
+    color.g = 60;
+    color.b = 101;
     mat_p->setTevColor(2, &color);
 
     cXyz proj;
@@ -319,6 +319,16 @@ void daAlink_c::preKandelaarDraw() {
     field_0x344c = ((near_ + (far_ * near_) / proj.z) / (far_ - near_) + 1.0f) * 1.6777215E7f;
 }
 
+void daAlink_c::setGhostLanternModel() {
+    field_0x2f94 = 0;
+
+    mDoMtx_multVecZero(mpLinkModel->getAnmMtx(mLeftItemJntNo), &mGhostLanternFlamePos);
+
+    ghost_lantern_0x3630 = ghost_lantern_0x3624;
+    ghost_lantern_0x3624 = mGhostLanternFlamePos;
+    ghost_lantern_0x3618 = cXyz::Zero;
+}
+
 void daAlink_c::setKandelaarModel() {
     field_0x2f94 = 0;
 
@@ -331,7 +341,6 @@ void daAlink_c::setKandelaarModel() {
         field_0x3630 = field_0x3624;
         field_0x3624 = mKandelaarFlamePos;
         field_0x3618 = cXyz::Zero;
-        ghost_lantern_0x3618 = cXyz::Zero;
 
         field_0x32c8 = 0;
         field_0x3448 = 0.0f;

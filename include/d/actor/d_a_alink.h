@@ -2662,6 +2662,9 @@ public:
     void preKandelaarDraw();
     void preGhostLanternDraw();
     static void* srchPoe(void*, void*);
+    #if TARGET_PC
+    void setGhostLanternModel();
+    #endif
     void setKandelaarModel();
     void resetOilBottleModel();
     void commonKandelaarPourInit();

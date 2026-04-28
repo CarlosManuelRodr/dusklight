@@ -6102,7 +6102,6 @@ void daAlink_c::setItemMatrix(int param_0) {
             mpGhostLanternModel->setBaseTRMtx(mDoMtx_stack_c::get());
 
             modelCalc(mpGhostLanternModel);
-            mGhostLanternFlamePos.y -= 25.0f;
             mDoMtx_stack_c::transS(mGhostLanternFlamePos);
             mpGhostLanternGlowModel->setBaseTRMtx(mDoMtx_stack_c::get());
             modelCalc(mpGhostLanternGlowModel);
@@ -14160,6 +14159,11 @@ BOOL daAlink_c::setItemModel() {
         }
     }
 
+    if (mEquipItem == dItemNo_LENS_OF_TRUTH_e) {
+        setGhostLanternModel();
+        return 1;
+    }
+
     if (mEquipItem == dItemNo_KANTERA_e) {
         setKandelaarModel();
         return 1;
@@ -18592,16 +18596,10 @@ int daAlink_c::execute() {
             setEffect();
 
             if (mEquipItem == dItemNo_LENS_OF_TRUTH_e) {
-                u16 effName;
-                dPa_levelEcallBack* callbackp;
-                JPABaseEmitter* emitterp;
-
-                effName = ID_ZI_J_KANTERA_FIRE;
-                callbackp = NULL;
-
-                ghostLanternFlameEffect = dComIfGp_particle_set(
-                    ghostLanternFlameEffect, effName, &mGhostLanternFlamePos, &tevStr, &shape_angle,
-                    NULL, 0xFF, callbackp, -1, NULL, NULL, NULL);
+                cXyz effscale(1.0f, 1.0f, 1.0f);
+                ghostLanternFlameEffect =
+                    dComIfGp_particle_set(ghostLanternFlameEffect, ID_ZI_J_KANTERA_FIRE,
+                                          &mGhostLanternFlamePos, &shape_angle, &effscale);
             } else {
                 stopDrawParticle(ghostLanternFlameEffect);
             }
