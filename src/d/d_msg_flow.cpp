@@ -16,6 +16,7 @@
 #include <cstring>
 
 #if TARGET_PC
+#include "dusk/randomizer/game/tools.h"
 #include "dusk/randomizer/game/stages.h"
 #endif
 
@@ -1199,6 +1200,16 @@ u16 dMsgFlow_c::query024(mesg_flow_node_branch* i_flowNode_p, fopAc_ac_c* i_spea
 u16 dMsgFlow_c::query025(mesg_flow_node_branch* i_flowNode_p, fopAc_ac_c* i_speaker_p, int param_2) {
     const u8 prm0 = i_flowNode_p->param;
     u16 ret = dComIfGs_checkEmptyBottle() >= prm0 ? 0 : 1;
+
+#if TARGET_PC
+    // Check to see if currently in one of the Kakariko interiors and if the red potion item is randomized
+    if (randomizer_IsActive() && playerIsInRoomStage(3, allStages[Kakariko_Village_Interiors]) &&
+        randomizer_GetContext().mShopOverrides.contains(0x4461)) // 0x4461 is the key for the red potion item
+    {
+        // Return 0 so the player can buy the red potion item from the shop.
+        return 0;
+    }
+#endif
 
     if (param_2 != 0) {
         // "Empty Bottle Count Check"

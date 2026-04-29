@@ -19,6 +19,11 @@
 #include "d/actor/d_a_tag_shop_item.h"
 #include <cstring>
 
+#if TARGET_PC
+#include "dusk/randomizer/game/verify_item_functions.h"
+#include "dusk/randomizer/game/tools.h"
+#include "dusk/randomizer/game/stages.h"
+#endif
 
 static daTag_ShopItem_c* dShopSystem_itemActor[7] = {
     NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -1208,10 +1213,14 @@ int dShopSystem_c::seq_decide_yes(fopAc_ac_c* actor, dMsgFlow_c* i_flow) {
 #if TARGET_PC
                 // In rando, override the item if it's one of our unique shop checks
                 if (randomizer_IsActive()) {
-                    switch (itemNo) {
-                    case dItemNo_Randomizer_PACHINKO_e:
-                        itemNo = randomizer_getItemAtLocation("Sera Shop Slingshot");
-                        break;
+                    u8 stageId = getStageID();
+                    u16 key = (stageId << 8) | itemNo;
+                    if (randomizer_GetContext().mShopOverrides.contains(key)) {
+                        itemNo = verifyProgressiveItem(randomizer_GetContext().mShopOverrides[key]);
+                        // Update the shop item flag no matter what in Kak Malo Mart
+                        if (playerIsInRoomStage(3, "R_SP109")) {
+                            setSoldOutFlag();
+                        }
                     }
                 }
 #endif

@@ -13,12 +13,12 @@
 #include "d/d_item.h"
 #include "d/d_item_data.h"
 #include "d/d_s_play.h"
-#include "dusk/randomizer/game/verify_item_functions.h"
 #include "f_op/f_op_camera_mng.h"
 #include "m_Do/m_Do_mtx.h"
 
 #if TARGET_PC
 #include "dusk/randomizer/game/tools.h"
+#include "dusk/randomizer/game/verify_item_functions.h"
 #include "dusk/frame_interpolation.h"
 #endif
 

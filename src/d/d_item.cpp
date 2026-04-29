@@ -9,6 +9,9 @@
 #include "d/d_com_inf_game.h"
 #include "d/d_meter2_info.h"
 #if TARGET_PC
+#include "dusk/randomizer/game/flags.h"
+#include "dusk/randomizer/game/tools.h"
+#include "dusk/randomizer/game/stages.h"
 #include "dusk/randomizer/game/verify_item_functions.h"
 #endif
 #include <cstring>
@@ -1081,6 +1084,51 @@ inline int getCheckItemFunc(u8 i_itemNo) {
 }
 
 int checkItemGet(u8 i_itemNo, int i_default) {
+#if TARGET_PC
+    // Check special randomizer cases
+    if (randomizer_IsActive()) {
+        switch (i_itemNo) {
+        case dItemNo_Randomizer_HYLIA_SHIELD_e:
+            // Check if we are at Kakariko Malo mart and verify that we have not bought the shield.
+            if (playerIsInRoomStage(3, allStages[Kakariko_Village_Interiors]) &&
+                !dComIfGs_isEventBit(BOUGHT_HYLIAN_SHIELD_AT_MALO_MART)) {
+                    // Return false so we can buy the shield.
+                    return 0;
+            }
+            break;
+        case dItemNo_Randomizer_HAWK_EYE_e:
+            // Check if we are at Kakariko Village and that the hawkeye is currently not for sale.
+            if (getStageID() == Kakariko_Village && !dComIfGs_isSwitch(0x3E, 0)) {
+                // Return false so we can buy the hawkeye.
+                return 0;
+            }
+            break;
+        case dItemNo_Randomizer_SHIELD_e:
+        case dItemNo_Randomizer_WOOD_SHIELD_e:
+            // Check if we are at Kakariko Malo mart and that the Wooden Shield has not been bought.
+            if (playerIsInRoomStage(3, allStages[Kakariko_Village_Interiors]) &&
+                !dComIfGs_isSwitch(0x5, 3)) {
+                    // Return false so we can buy the shield.
+                    return 0;
+                }
+            break;
+        case dItemNo_Randomizer_TOMATO_PUREE_e:
+        case dItemNo_Randomizer_TASTE_e:
+            // Check to see if currently in Snowpeak Ruins
+            if (getStageID() == Snowpeak_Ruins) {
+                // Return false so that yeta will give the map item no matter what.
+                return 0;
+            }
+            break;
+        case dItemNo_Randomizer_IRONBALL_e:
+            // Check to see if currently in Snowpeak Ruins Darkhammer room
+            if (getStageID() == Darkhammer) {
+                return dComIfGs_isSwitch(0x5F, 51); // Picked up the Ball and Chain check.
+            }
+        }
+    }
+#endif
+
     int result = getCheckItemFunc(i_itemNo);
 
     if (result == -1) {

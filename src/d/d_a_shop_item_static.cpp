@@ -7,11 +7,6 @@
 
 #include "d/d_a_shop_item_static.h"
 
-#if TARGET_PC
-#include "dusk/randomizer/game/verify_item_functions.h"
-#include "d/d_item_data.h"
-#endif
-
 csXyz* daShopItem_c::getRotateP() {
     return &current.angle;
 }
@@ -46,35 +41,51 @@ ResourceData const daShopItem_c::mData[23] = {
     {"O_mD_bott", 6, 12, -1, -1, -1, 9, 15, 0.0f, 1.0f, 0, {0, 0, 0}, 4, 0, 0, 0, 12, 0},
 };
 
+#if TARGET_PC
+// Make a copy of mData that we can overwrite for randomized items
+ResourceData daShopItem_c::mRandoData[23] = {
+    {"B_mD_sold", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, -0x8000, 0}, 0, 0, 0, 0, -1, -1},
+    {"B_mD_oil", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, -1, -1},
+    {"O_mD_red", 3, -1, -1, -1, -1, -1, -11, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, -1, -1},
+    {"B_mD_milk", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, -1, -1},
+    {"O_mD_bott", 6, 12, -1, -1, -1, 9, 15, 0.0f, 1.0f, 0, {0, 0, 0}, 4, 0, 0, 0, 3, 1},
+    {"O_mD_arw", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, -1, -1},
+    {"O_mD_SHB", 3, -1, -1, -1, -1, -1, -1, 30.0f, 1.0f, 0, {0, 0x7FFF, 0}, 0, 0, 0, 0, -1, -1},
+    {"O_mD_SHA", 3, -1, -1, -1, -1, -1, -1, 30.0f, 1.0f, 0, {0, 0x7FFF, 0}, 0, 0, 0, 0, -1, -1},
+    {"O_mD_bomb", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, 0, -1},
+    {"O_mD_pg", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, 0, -1},
+    {"O_mD_bi", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, 0, -1},
+    {"O_mD_bmcs", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, 0, -1},
+    {"O_mD_bmc2", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, 0, -1},
+    {"O_mD_jira", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, 0, -1},
+    {"O_mD_bott", 6, 12, -1, -1, -1, 9, 15, 0.0f, 1.0f, 0, {0, 0, 0}, 4, 0, 0, 0, 1, 0},
+    {"O_mD_hati", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, -1, -1},
+    {"O_mD_pach", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, -1, -1},
+    {"O_mD_blue", 3, -1, -1, -1, -1, -1, -11, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, -1, -1},
+    {"O_mD_hawk", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, -1, -1},
+    {"O_mD_marm", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, -1, -1},
+    {"O_mD_marm", 4, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, -1, -1},
+    {"O_mD_gren", 3, -1, -1, -1, -1, -1, -1, 0.0f, 1.0f, 0, {0, 0, 0}, 0, 0, 0, 0, -1, -1},
+    {"O_mD_bott", 6, 12, -1, -1, -1, 9, 15, 0.0f, 1.0f, 0, {0, 0, 0}, 4, 0, 0, 0, 12, 0},
+};
+#endif
+
 int CheckShopItemCreateHeap(fopAc_ac_c* i_this) {
     daShopItem_c* a_this1 = static_cast<daShopItem_c*>(i_this);
     daShopItem_c* a_this2 = static_cast<daShopItem_c*>(i_this);
 
     u8 a_ShopItemID = a_this2->getShopItemID();
-#if TARGET_PC
-    // In randomizer, create the model for the randomized shop item
-    if (randomizer_IsActive()) {
-        u8 randoItem{0};
-        switch (a_ShopItemID) {
-            // Sera Shop Slingshot
-        case daShopItem_c::SHOP_ITEMNO_PACHINKO:
-            randoItem = randomizer_getItemAtLocation("Sera Shop Slingshot");
-            break;
-        default:
-            break;
-        }
 
-        if (randoItem) {
-            randoItem = verifyProgressiveItem(randoItem);
-            return a_this1->CreateItemHeap(dItem_data::getArcName(randoItem),
-                                  dItem_data::getBmdName(randoItem),
-                                  dItem_data::getBtkName(randoItem),
-                                  dItem_data::getBpkName(randoItem),
-                                  dItem_data::getBckName(randoItem),
-                                  dItem_data::getBxaName(randoItem),
-                                  dItem_data::getBrkName(randoItem),
-                                  dItem_data::getBtpName(randoItem));
-        }
+#if TARGET_PC
+    if (a_this2->isRandomized()) {
+        return a_this1->CreateItemHeap(daShopItem_c::mRandoData[a_ShopItemID].get_arcName(),
+                                  daShopItem_c::mRandoData[a_ShopItemID].get_bmdName(),
+                                  daShopItem_c::mRandoData[a_ShopItemID].get_btk1Name(),
+                                  daShopItem_c::mRandoData[a_ShopItemID].get_bpk1Name(),
+                                  daShopItem_c::mRandoData[a_ShopItemID].get_bck1Name(),
+                                  daShopItem_c::mRandoData[a_ShopItemID].get_bxa1Name(),
+                                  daShopItem_c::mRandoData[a_ShopItemID].get_brk1Name(),
+                                  daShopItem_c::mRandoData[a_ShopItemID].get_btp1Name());
     }
 #endif
 
