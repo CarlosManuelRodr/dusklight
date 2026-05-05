@@ -514,19 +514,16 @@ int dMsgFlow_c::setNormalMsg(mesg_flow_node* i_flowNode_p, fopAc_ac_c* i_speaker
 
 #if TARGET_PC
     if (randomizer_IsActive()) {
-        // If this is the fishing hole bottle message, override it
-        // with the item message for the randomized item
-        if (msg_no == 0x71E && g_randomizerState.mFishingBottleItemId != 0) {
-            msg_no = getItemMessageID(g_randomizerState.mFishingBottleItemId);
-            g_randomizerState.mFishingBottleItemId = 0;
-        } else {
-            u32 key = (dMsgObject_getGroupID() << 16) | msg_no;
-            auto& flowItemOverrides = randomizer_GetContext().mFlowItemMessageOverrides;
-            if (flowItemOverrides.contains(key)) {
-                u8 itemId = verifyProgressiveItem(flowItemOverrides[key]);
-                msg_no = getItemMessageID(itemId);
-                execItemGet(itemId);
-            }
+        u32 key = (dMsgObject_getGroupID() << 16) | msg_no;
+        // Use group 0 if the msg_no is below 5000 regardless of current group
+        if (msg_no < 5000) {
+            key &= 0x0000FFFF;
+        }
+        auto& flowItemOverrides = randomizer_GetContext().mFlowItemMessageOverrides;
+        if (flowItemOverrides.contains(key)) {
+            u8 itemId = verifyProgressiveItem(flowItemOverrides[key]);
+            msg_no = getItemMessageID(itemId);
+            execItemGet(itemId);
         }
     }
 #endif

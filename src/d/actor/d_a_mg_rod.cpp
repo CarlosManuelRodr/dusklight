@@ -4040,15 +4040,8 @@ static void uki_catch(dmg_rod_class* i_this) {
                 i_this->msgflow.init(actor, 0x139A, 0, NULL);
                 dComIfGs_onEventBit(dSv_event_flag_c::saveBitLabels[468]);
 #if TARGET_PC
-                if (randomizer_IsActive()) {
-                    // In rando, give the player the fishing bottle randomized item. Then save
-                    // the itemId for later since the textbox happens after we've already given the player
-                    // the item. If we didn't save it and the item is progressive, then we get the wrong
-                    // text for the item.
-                    u8 itemId = verifyProgressiveItem(randomizer_getItemAtLocation("Fishing Hole Bottle"));
-                    g_randomizerState.mFishingBottleItemId = itemId;
-                    execItemGet(itemId);
-                } else
+                // Don't give the item here in rando. We give it later in the FLW Message
+                if (!randomizer_IsActive())
 #endif
                 dComIfGs_setEmptyBottle();
             } else if (mgfish->mCaughtType == MG_CATCH_KN) {
