@@ -4842,6 +4842,13 @@ int daAlink_c::procCoWarpInit(int param_0, int param_1) {
                         (checkItemGet(dItemNo_DUNGEON_BACK_e, 1) &&
                          strcmp(stageName, dComIfGs_getWarpStageName()) == 0))
                     {
+#if TARGET_PC
+                        // In rando, only clear the Ooccoo slot if Ooccoo is in it
+                        u8 ooccooSlot = dComIfGs_getItem(SLOT_18, false);
+                        if (!randomizer_IsActive() || ooccooSlot == dItemNo_Randomizer_DUNGEON_EXIT_e ||
+                                                      ooccooSlot == dItemNo_Randomizer_DUNGEON_EXIT_2_e ||
+                                                      ooccooSlot == dItemNo_Randomizer_LV7_DUNGEON_EXIT_e)
+#endif
                         dComIfGs_setItem(SLOT_18, dItemNo_NONE_e);
                         dComIfGs_resetLastWarpAcceptStage();
                     }

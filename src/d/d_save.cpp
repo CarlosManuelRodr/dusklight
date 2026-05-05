@@ -1243,39 +1243,6 @@ void dSv_memBit_c::onDungeonItem(int i_no) {
         if (i_no == STAGE_LIFE) {
             return;
         }
-
-        switch(i_no)
-        {
-            case STAGE_BOSS_ENEMY:
-            {
-                // Start at 1 because we haven't set the current dungeon's flag yet.
-                int numCompletedDungeons = 1;
-                for (int i = 0x10; i < 0x18; i++)
-                {
-                    if (dComIfGs_isStageBossEnemy(i))
-                    {
-                        numCompletedDungeons++;
-                    }
-                }
-
-                /*
-                Pasting rando code for the time being until the framework is built:
-                // Check if we have completed enough dungeons to break the barrier.
-                        randoPtr->checkSetHCBarrierFlag(rando::HC_Dungeons, numDungeons);
-
-                        // Check if we have completed enough dungeons to unlock the BK check.
-                        randoPtr->checkSetHCBkFlag(rando::HC_BK_Dungeons, numDungeons);
-                */
-                if (i_no == 0x13) // Stallord
-                {
-                    /*
-                    const uint32_t agDungeonReward = randoPtr->getEventItem(rando::customItems::Mirror_Piece_1);
-                    randoPtr->addItemToEventQueue(agDungeonReward);
-                    */
-                }
-                break;
-            }
-        }
     }
 #endif
     mDungeonItem |= (u8)(1 << i_no);
@@ -1354,6 +1321,16 @@ s32 dSv_memBit_c::isDungeonItem(int i_no) const {
 #endif
     return mDungeonItem & (u8)(1 << i_no) ? TRUE : FALSE;
 }
+
+#if TARGET_PC
+void dSv_memBit_c::onStageBossEnemy() {
+    onDungeonItem(STAGE_BOSS_ENEMY);
+    // Don't turn Ooccoo into the note when defeating a boss
+    if (!randomizer_IsActive()) {
+        onDungeonItem(OOCCOO_NOTE);
+    }
+}
+#endif
 
 void dSv_event_c::init() {
     int i;
