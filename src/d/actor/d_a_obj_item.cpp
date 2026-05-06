@@ -17,6 +17,8 @@
 #include "m_Do/m_Do_mtx.h"
 
 #if TARGET_PC
+#include "d/actor/d_a_alink.h"
+
 #include "dusk/randomizer/game/tools.h"
 #include "dusk/randomizer/game/verify_item_functions.h"
 #include "dusk/frame_interpolation.h"
@@ -575,7 +577,7 @@ void daItem_c::procWaitGetDemoEvent() {
             dComIfGp_event_setItemPartnerId(m_item_id);
         }
     } else {
-        if (m_itemNo == dItemNo_BOOMERANG_e) {
+        if (m_itemNo == dItemNo_BOOMERANG_e IF_DUSK(&& !randomizer_IsActive())) {
             fopAcM_orderItemEvent(this, 0, 0);
             eventInfo.onCondition(dEvtCnd_CANGETITEM_e);
             return;
@@ -583,8 +585,10 @@ void daItem_c::procWaitGetDemoEvent() {
 
 #if TARGET_PC
         // Probably a better way to handle this, but will do for now
-        // We always want to play the textbox in rando if possible (except for rupees/ammo)
-        if ((cLib_calcTimer<u8>(&field_0x9c1) == 0 && !randomizer_IsActive()) || checkItemGet(m_itemNo, 1)) {
+        // Try to play the textbox in rando if possible (except for rupees/ammo
+        // and when snowboarding or swimming)
+        if ((cLib_calcTimer<u8>(&field_0x9c1) == 0 && !randomizer_IsActive()) || checkItemGet(m_itemNo, 1)
+            || daPy_getPlayerActorClass()->checkBoardRide() || daAlink_getAlinkActorClass()->checkSwimming()) {
 #else
         if (cLib_calcTimer<u8>(&field_0x9c1) == 0 || checkItemGet(m_itemNo, 1)) {
 #endif
@@ -885,7 +889,7 @@ void daItem_c::itemGetNextExecute() {
         BOOL haveItem = false;
 
 #if TARGET_PC
-        // Randomizer specific stuff for choosing if to play a demo or not
+        // Randomizer specific stuff for choosing if to play a demo or not.
         // Just copying the whole switch statement here and modifying it
         // is better than littering the original switch statement with #if TARGET_PC
         if (randomizer_IsActive()) {
@@ -896,6 +900,8 @@ void daItem_c::itemGetNextExecute() {
             case dItemNo_ARROW_20_e:
             case dItemNo_ARROW_30_e:
             case dItemNo_ARROW_1_e:
+                procInitSimpleGetDemo();
+                itemGet();
             case dItemNo_BLUE_RUPEE_e:
             case dItemNo_YELLOW_RUPEE_e:
             case dItemNo_RED_RUPEE_e:
@@ -904,7 +910,8 @@ void daItem_c::itemGetNextExecute() {
             case dItemNo_SILVER_RUPEE_e:
             case dItemNo_PACHINKO_SHOT_e:
                 if (daPy_getPlayerActorClass()->checkCanoeRide() ||
-                    daPy_getPlayerActorClass()->checkHorseRide())
+                    daPy_getPlayerActorClass()->checkHorseRide() IF_DUSK(||
+                    daPy_getPlayerActorClass()->checkBoardRide())) // Check snowboarding for rando
                 {
                     if (checkItemGet(m_itemNo, 1)) {
                         haveItem = true;
@@ -990,6 +997,11 @@ void daItem_c::itemGet() {
     setRandomizerItem();
 #endif
     switch (m_itemNo) {
+#if TARGET_PC
+    // Play sound for heart pieces and containers as well (should only happen in rando)
+    case dItemNo_UTAWA_HEART_e:
+    case dItemNo_KAKERA_HEART_e:
+#endif
     case dItemNo_HEART_e:
         mDoAud_seStart(Z2SE_HEART_PIECE_GET, NULL, 0, 0);
         execItemGet(m_itemNo);
@@ -1031,7 +1043,17 @@ void daItem_c::itemGet() {
     case dItemNo_PACHINKO_SHOT_e:
         mDoAud_seStart(Z2SE_CONSUMP_ITEM_GET, NULL, 0, 0);
         execItemGet(m_itemNo);
+#if TARGET_PC
+        break;
+#endif
     default:
+#if TARGET_PC
+        if (randomizer_IsActive()) {
+            // Some kind of sound should play, otherwise it feels weird
+            mDoAud_seStart(Z2SE_CONSUMP_ITEM_GET, NULL, 0, 0);
+            execItemGet(m_itemNo);
+        }
+#endif
         // "[daItem_c] Get process not defined[%d]\n"
         OS_REPORT_ERROR("[daItem_c]ゲット処理が定義されていません[%d]\n", m_itemNo);
         break;

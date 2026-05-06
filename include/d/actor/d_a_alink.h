@@ -3911,6 +3911,8 @@ public:
     
 #if TARGET_PC
     u16 getEventId() { return mMsgFlow.getEventId(); }
+
+    bool checkSwimming() {return checkModeFlg(MODE_SWIMMING);}
 #endif
 
     static daAlink_BckData const m_mainBckShield[20];
