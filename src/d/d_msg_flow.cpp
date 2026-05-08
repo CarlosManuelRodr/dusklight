@@ -523,7 +523,8 @@ int dMsgFlow_c::setNormalMsg(mesg_flow_node* i_flowNode_p, fopAc_ac_c* i_speaker
         if (flowItemOverrides.contains(key)) {
             u8 itemId = verifyProgressiveItem(flowItemOverrides[key]);
             msg_no = getItemMessageID(itemId);
-            execItemGet(itemId);
+            // Store this itemId so that we can give the item when the textbox closes
+            g_randomizerState.mFlowMessageItemId = itemId;
         }
     }
 #endif

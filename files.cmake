@@ -1521,6 +1521,8 @@ set(DUSK_FILES
         # Randomizer files
         src/dusk/randomizer/game/flags.cpp
         src/dusk/randomizer/game/flags.h
+        src/dusk/randomizer/game/messages.cpp
+        src/dusk/randomizer/game/messages.hpp
         src/dusk/randomizer/game/stages.cpp
         src/dusk/randomizer/game/stages.h
         src/dusk/randomizer/game/tools.cpp

@@ -697,13 +697,14 @@ u32 dMsgObject_c::getMessageIndex(u32 param_0) {
 u32 dMsgObject_c::getRevoMessageIndex(u32 param_1) {
 #if TARGET_PC
     if (randomizer_IsActive()) {
-        // Special case for Ilia Memory Reward Text
+        // Special case for Ilia Memory Reward Text (param_1 is msgId)
         // If we're in the sanctuary cutscene where we get the reward, override the text.
-        // Otherwise we override the text whenever we get the regular horse call
+        // Otherwise the regular item text for the horse call would be overriden if we find it
         if (param_1 == 233 && playerIsInRoomStage(0, "R_SP109") && dComIfGp_getLayerNo() == 9) {
             u8 itemId = verifyProgressiveItem(randomizer_getItemAtLocation("Ilia Memory Reward"));
             param_1 = getItemMessageID(itemId);
-            execItemGet(itemId);
+            // Store this itemId so that we can give the item when the textbox closes
+            g_randomizerState.mFlowMessageItemId = itemId;
         } else {
             // Else override the text if we have an override
             u32 key = (dMsgObject_getGroupID() << 16) | param_1;
@@ -711,7 +712,8 @@ u32 dMsgObject_c::getRevoMessageIndex(u32 param_1) {
             if (flowItemOverrides.contains(key)) {
                 u8 itemId = verifyProgressiveItem(flowItemOverrides[key]);
                 param_1 = getItemMessageID(itemId);
-                execItemGet(itemId);
+                // Store this itemId so that we can give the item when the textbox closes
+                g_randomizerState.mFlowMessageItemId = itemId;
             }
         }
     }
@@ -814,6 +816,14 @@ void dMsgObject_c::waitProc() {
             }
         }
     }
+#if TARGET_PC
+    // If we have a randomizer item to give because of a flow message override
+    // then give it if the textbox has been fully closed.
+    if (randomizer_IsActive() && g_randomizerState.mFlowMessageItemId != 0 && mpScrnDraw == NULL) {
+        execItemGet(g_randomizerState.mFlowMessageItemId);
+        g_randomizerState.mFlowMessageItemId = 0;
+    }
+#endif
 }
 
 void dMsgObject_c::openProc() {
